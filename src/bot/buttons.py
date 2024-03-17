@@ -1,4 +1,4 @@
-from .price import price
+from src.price import price
 
 from aiogram.types import KeyboardButton
 

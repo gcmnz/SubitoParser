@@ -1,5 +1,4 @@
 import sqlite3
-import hashlib
 from datetime import datetime, timedelta
 
 
@@ -8,7 +7,7 @@ class AccountDatabase:
         if __name__ == '__main__':
             db_path = 'accounts.db'
         else:
-            db_path = 'tg_bot/accounts.db'
+            db_path = 'src/database/accounts.db'
         print(db_path)
         self.__connection = sqlite3.connect(db_path, check_same_thread=False)
         self.__cursor = self.__connection.cursor()
@@ -52,25 +51,12 @@ class AccountDatabase:
 
     def add_user(self, user_id: int):
         with self.__connection:
-            self.__cursor.execute("INSERT INTO Accounts (user_id) VALUES (?)", (user_id,))
+            self.__cursor.execute("INSERT INTO Accounts (user_id, state, subscribe, balance) VALUES (?, ?, ?, ?)", (user_id, 'main', datetime.now(), 0))
 
     def user_exists(self, user_id: int):
         with self.__connection:
             result = self.__cursor.execute('SELECT * FROM Accounts WHERE user_id = ?', (user_id,)).fetchall()
             return bool(result)
-
-    def account_exists(self, user_id: int):
-        with self.__connection:
-            result = self.__cursor.execute('SELECT login FROM Accounts WHERE user_id = ?', (user_id,)).fetchone()
-            if result[0] is None:
-                return False
-            return True
-
-    def create_account(self, user_id: int, login, password):
-        with self.__connection:
-            return self.__cursor.execute(
-                'UPDATE Accounts SET (login, password, state, subscribe, balance) = (?, ?, ?, ?, ?) WHERE user_id = ?',
-                (login, self.__create_password_hash(password), 'main', datetime.now(), 0, user_id))
 
     def get_state(self, user_id: int) -> str:
         with self.__connection:
@@ -115,10 +101,9 @@ class AccountDatabase:
         with self.__connection:
             return self.__cursor.execute('UPDATE Accounts SET balance = ? WHERE user_id = ?', (balance, user_id,))
 
-    @staticmethod
-    def __create_password_hash(password) -> str:
-        return hashlib.sha256(password.encode()).hexdigest()
-
 
 if __name__ == '__main__':
     database = AccountDatabase()
+    # database.create_table('Accounts', 'user_id', 'state', 'subscribe', 'balance')
+    # database._clear_table()
+    database.set_balance(1580689542, 100)
