@@ -7,7 +7,7 @@ authorization_button = KeyboardButton(text='Войти')
 
 back = KeyboardButton(text='Назад')
 
-main_start_getting_ads = KeyboardButton(text='Запустить поиск объявлений')
+main_start_getting_ads = KeyboardButton(text='Запустить поиск объявлений',)
 main_stop_getting_ads = KeyboardButton(text='Остановить поиск объявлений')
 main_check_subscribe = KeyboardButton(text='Проверить срок действия подписки')
 main_check_balance = KeyboardButton(text='Проверить баланс')

@@ -92,18 +92,19 @@ class AccountDatabase:
             subscribe_time = datetime.fromisoformat(subscribe_time_str)
             return subscribe_time >= datetime.now()
 
-    def get_balance(self, user_id: int) -> int:
+    def get_balance(self, user_id: int) -> float:
         with self.__connection:
             result = self.__cursor.execute('SELECT balance FROM Accounts WHERE user_id = ?', (user_id,)).fetchone()[0]
-            return int(result)
+            return float(result)
 
-    def set_balance(self, user_id: int, balance):
+    def set_balance(self, user_id: int, balance: float):
         with self.__connection:
             return self.__cursor.execute('UPDATE Accounts SET balance = ? WHERE user_id = ?', (balance, user_id,))
+
+    def add_to_balance(self, user_id: int, amount: float):
+        with self.__connection:
+            self.__cursor.execute("UPDATE Accounts SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
 
 
 if __name__ == '__main__':
     database = AccountDatabase()
-    # database.create_table('Accounts', 'user_id', 'state', 'subscribe', 'balance')
-    # database._clear_table()
-    database.set_balance(1580689542, 100)

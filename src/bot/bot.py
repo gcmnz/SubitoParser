@@ -2,20 +2,23 @@ import asyncio
 import re
 from datetime import datetime
 
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters.command import Command
-
 from src.parser_subito import SubitoParser
 from .markups import *
 from src.database import AccountDatabase
 from src.price import price_txt
+from config import BOT_TOKEN
+from src.payment.payment import create_invoice
+
+
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters.command import Command
+
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-TOKEN = '123'
+bot = Bot(token=BOT_TOKEN)
 
-bot = Bot(token=TOKEN)
 dp = Dispatcher()
 database = AccountDatabase()
 subito_parser = SubitoParser(bot)
@@ -102,22 +105,26 @@ async def bot_message(message: types.Message):
                 database.set_state(user_id, 'main')
 
             elif message.text == 'Пополнить':
-                await bot.send_message(user_id, 'Пока не умею, обратись к славику', reply_markup=main_state)
+                await bot.send_message(user_id, '💰 Пополнение баланса\n— Минимальная сумма: 0.5$\nℹ️ Введите сумму пополнения', reply_markup=add_balance_state)
+                database.set_state(user_id, 'add_balance')
+
+        elif database.get_state(user_id) == 'add_balance':
+            if message.text == 'Назад':
+                await bot.send_message(user_id, '...', reply_markup=main_state)
                 database.set_state(user_id, 'main')
 
-    # if user_id != 1580689542:
-    #     await bot.send_message(1580689542, f'user: {user_id}, message: {message.text}')
+            else:
+                try:
+                    amount = float(message.text)
+                    if amount < 0.05:
+                        await bot.send_message(user_id, 'Введена некорректная сумма')
+                    else:
+                        await create_invoice(bot, user_id, amount)
+                except ValueError:
+                    await bot.send_message(user_id, 'Введена некорректная сумма')
 
 
-async def main():
-    await dp.start_polling(bot)
-
-
-def is_alpha_only(s):
+def is_alpha_only(s: str) -> bool:
     # Регулярное выражение для проверки наличия только букв английского алфавита верхнего и нижнего регистров
     pattern = re.compile(r'^[a-zA-Z]+$')
     return bool(pattern.match(s))
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
