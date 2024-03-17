@@ -116,7 +116,7 @@ async def bot_message(message: types.Message):
             else:
                 try:
                     amount = float(message.text)
-                    if amount < 0.05:
+                    if amount < 0.5:
                         await bot.send_message(user_id, 'Введена некорректная сумма')
                     else:
                         await create_invoice(bot, user_id, amount)
